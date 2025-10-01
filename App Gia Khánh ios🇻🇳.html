@@ -1,0 +1,272 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Ứng dụng (giakhanh)</title>
+  <style>
+    :root{
+      --bg:#071025; --card:#0d1722; --accent:#06b6d4; --muted:#9fb0c3; --on:#10b981; --danger:#ef4444;
+      font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+      color-scheme: dark;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%; margin:0; background:linear-gradient(180deg,#021023,#071428 70%); color:#e6eef6;}
+    .wrap{max-width:980px; margin:28px auto; padding:18px; border-radius:12px;}
+    .topbar{display:flex; gap:12px; align-items:center; justify-content:space-between; margin-bottom:12px;}
+    .brand{display:flex; gap:12px; align-items:center;}
+    .avatar{width:56px; height:56px; border-radius:10px; overflow:hidden; background:linear-gradient(180deg,#0b2533,#072233); display:flex; align-items:center; justify-content:center; cursor:pointer; border:2px solid rgba(255,255,255,0.03); transition:transform .15s, box-shadow .15s;}
+    .avatar:hover{transform:translateY(-3px); box-shadow:0 8px 30px rgba(2,6,23,0.6);}
+    .avatar img{width:100%; height:100%; object-fit:cover; display:block;}
+    .brand h1{font-size:18px; margin:0;}
+    .menu-info{font-size:13px; color:var(--muted);}
+    .card{background:var(--card); padding:16px; border-radius:12px; margin-bottom:14px; box-shadow:0 6px 30px rgba(2,6,23,0.7);}
+    label{display:block; margin-bottom:6px; color:var(--muted); font-size:13px;}
+    input[type="text"], input[type="password"]{width:100%; padding:10px; border-radius:8px; border:1px solid rgba(255,255,255,0.04); background:rgba(255,255,255,0.02); color:inherit;}
+    .btn{display:inline-block; padding:8px 12px; background:var(--accent); color:#012; border-radius:8px; border:none; cursor:pointer; font-weight:600; margin-right:8px;}
+    .btn.ghost{background:transparent; border:1px solid rgba(255,255,255,0.06); color:var(--muted);}
+    .row{display:flex; gap:12px; align-items:center; margin-top:10px; flex-wrap:wrap;}
+    .switch {position:relative; width:56px; height:30px; background:#132033; border-radius:999px; cursor:pointer; display:inline-block; transition:background .18s;}
+    .switch .dot{position:absolute; top:3px; left:3px; width:24px; height:24px; background:#cfeff4; border-radius:50%; transition:transform .18s;}
+    .switch.on {background:linear-gradient(90deg,var(--on), #38bdf8);}
+    .switch.on .dot{transform:translateX(26px); background:white;}
+    .small{font-size:13px; color:var(--muted);}
+    .display {margin-top:12px; padding:14px; background:rgba(255,255,255,0.02); border-radius:8px; min-height:56px; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:18px; color:var(--muted); transition:transform .18s;}
+    .display.on{color:var(--on); background:linear-gradient(90deg, rgba(16,185,129,0.06), rgba(6,182,212,0.02));}
+    .file-drop {border:2px dashed rgba(255,255,255,0.03); padding:18px; border-radius:8px; text-align:center; transition:background .12s, border-color .12s;}
+    .file-drop.drag {background:rgba(6,182,212,0.03); border-color:rgba(6,182,212,0.4);}
+    .hidden{display:none !important;}
+    .logout {background:var(--danger); border-radius:8px; padding:8px 10px; color:#fff; border:none; cursor:pointer;}
+    footer{font-size:13px; color:var(--muted); margin-top:8px; text-align:center;}
+    /* Overlay Chiến Đê */
+    #overlay{position:fixed; inset:0; background:rgba(0,0,0,0.85); display:flex; align-items:center; justify-content:center; z-index:999; color:#34d399; font-size:48px; font-weight:800; letter-spacing:2px; animation:fadeIn .4s ease-out;}
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="topbar">
+      <div class="brand">
+        <div id="avatar" class="avatar" title="Đổi avatar">
+          <svg id="defaultAvatar" width="44" height="44" viewBox="0 0 24 24" fill="none" style="display:block">
+            <rect x="1" y="1" width="22" height="22" rx="5" fill="#062a3a"/>
+            <path d="M6 16c1.5-2 4-3 6-3s4.5 1 6 3" stroke="#9fd0e0" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+            <circle cx="12" cy="9.2" r="2.8" stroke="#9fd0e0" stroke-width="1.2"/>
+          </svg>
+        </div>
+        <div>
+          <h1>Ứng dụng</h1>
+          <div class="menu-info" id="menuUser">Chưa đăng nhập</div>
+        </div>
+      </div>
+      <div>
+        <button id="logoutBtn" class="logout hidden">Đăng xuất</button>
+      </div>
+    </div>
+
+    <div class="card" id="loginCard">
+      <strong>Đăng nhập</strong>
+      <label for="username">Tài khoản</label>
+      <input id="username" type="text" placeholder="Nhập tài khoản..." />
+      <label for="password">Mật khẩu</label>
+      <input id="password" type="password" placeholder="Nhập mật khẩu..." />
+      <div class="row">
+        <button id="loginBtn" class="btn">Đăng nhập</button>
+        <button id="clearBtn" class="btn ghost">Xóa</button>
+        <div id="loginMsg" class="small" style="margin-left:8px;"></div>
+      </div>
+    </div>
+
+    <div id="appArea" class="hidden">
+      <div class="card">
+        <strong>Bug Màn📱</strong>
+        <div style="display:flex; gap:12px; align-items:center;">
+          <input id="range1" type="range" min="0" max="100" value="25" />
+          <div class="small">Giá trị: <span id="rangeVal">25%</span></div>
+        </div>
+        <div style="margin-top:10px; display:flex; gap:12px; align-items:center;">
+          <div id="switch1" class="switch" role="switch" aria-checked="false" tabindex="0"><span class="dot"></span></div>
+          <button id="onBtn1" class="btn hidden">ON</button>
+        </div>
+        <div id="display1" class="display">—</div>
+      </div>
+
+      <div class="card">
+        <strong>Nhẹ Tâm☠️</strong>
+        <div class="row">
+          <button id="showOn2" class="btn ghost">Hiện ON</button>
+          <button id="onBtn2" class="btn hidden">ON</button>
+        </div>
+        <div id="display2" class="display">—</div>
+      </div>
+
+      <div class="card">
+        <strong>File dpi🇻🇳</strong>
+        <div class="row">
+          <button id="pickFileBtn" class="btn">Chọn file</button>
+          <input id="fileInput" type="file" class="hidden" />
+        </div>
+        <div id="display3" class="display">—</div>
+      </div>
+
+      <div class="card">
+        <strong>File Bug độ nhạy</strong>
+        <div id="dropArea" class="file-drop" style="margin-top:8px; cursor:pointer;">
+          Kéo thả file vào đây, hoặc bấm để chọn.
+        </div>
+        <input id="dropInput" type="file" class="hidden" />
+        <div id="display4" class="display">—</div>
+      </div>
+
+      <!-- Nút Chạy tất cả -->
+      <div style="text-align:center; margin-top:20px;">
+        <button id="runAllBtn" class="btn" style="font-size:18px;">Chạy tất cả</button>
+      </div>
+    </div>
+
+    <footer>Phiên bản chính thức</footer>
+  </div>
+
+<script>
+  const CORRECT_USER = "giakhanh";
+  const CORRECT_PASS = "Bobaro";
+
+  const loginBtn = document.getElementById("loginBtn");
+  const clearBtn = document.getElementById("clearBtn");
+  const logoutBtn = document.getElementById("logoutBtn");
+  const loginCard = document.getElementById("loginCard");
+  const appArea = document.getElementById("appArea");
+  const menuUser = document.getElementById("menuUser");
+  const loginMsg = document.getElementById("loginMsg");
+
+  loginBtn.addEventListener("click", () => {
+    const user = document.getElementById("username").value.trim();
+    const pass = document.getElementById("password").value;
+    if (user === CORRECT_USER && pass === CORRECT_PASS) {
+      localStorage.setItem("demo_user", CORRECT_USER);
+      loginMsg.textContent = "Đăng nhập thành công";
+      loginMsg.style.color = "#34d399";
+      showApp(true);
+    } else {
+      loginMsg.textContent = "Sai tài khoản hoặc mật khẩu";
+      loginMsg.style.color = "#fda4af";
+    }
+  });
+
+  clearBtn.addEventListener("click", () => {
+    document.getElementById("username").value = "";
+    document.getElementById("password").value = "";
+    loginMsg.textContent = "";
+  });
+
+  logoutBtn.addEventListener("click", () => {
+    localStorage.removeItem("demo_user");
+    showApp(false);
+  });
+
+  function showApp(show) {
+    if (show) {
+      loginCard.classList.add("hidden");
+      appArea.classList.remove("hidden");
+      logoutBtn.classList.remove("hidden");
+      menuUser.textContent = CORRECT_USER;
+    } else {
+      loginCard.classList.remove("hidden");
+      appArea.classList.add("hidden");
+      logoutBtn.classList.add("hidden");
+      menuUser.textContent = "Chưa đăng nhập";
+    }
+  }
+
+  if(localStorage.getItem("demo_user") === CORRECT_USER){
+    showApp(true);
+  }
+
+  const beep = new Audio("https://cdn.pixabay.com/audio/2022/03/15/audio_c5fb4cc9be.mp3");
+
+  function showDisplay(el, {text='ON', effects=[]} = {}){
+    el.textContent = text;
+    el.classList.add("on","animate-fade");
+    effects.forEach(cl=> el.classList.add(cl));
+    try { beep.currentTime = 0; beep.play().catch(()=>{}); } catch(e){}
+    setTimeout(()=> el.classList.remove("animate-fade","animate-shake","animate-glow","animate-bounce"), 900);
+  }
+
+  // ==== Chức năng 1 ====
+  const range1 = document.getElementById("range1");
+  const rangeVal = document.getElementById("rangeVal");
+  const switch1 = document.getElementById("switch1");
+  const onBtn1 = document.getElementById("onBtn1");
+  const display1 = document.getElementById("display1");
+  let switch1State = false;
+  function updateRange(){ rangeVal.textContent = range1.value + "%"; }
+  range1.addEventListener("input", updateRange);
+  updateRange();
+  function setSwitch1(state){
+    switch1State = !!state;
+    if(switch1State){
+      switch1.classList.add("on");
+      switch1.setAttribute("aria-checked","true");
+      onBtn1.classList.remove("hidden");
+    } else {
+      switch1.classList.remove("on");
+      switch1.setAttribute("aria-checked","false");
+      onBtn1.classList.add("hidden");
+      display1.textContent = "—";
+      display1.classList.remove("on");
+    }
+  }
+  switch1.addEventListener("click", ()=> setSwitch1(!switch1State));
+  switch1.addEventListener("keydown", (e)=> { if(e.key==="Enter"||e.key===" "){ e.preventDefault(); setSwitch1(!switch1State); } });
+  onBtn1.addEventListener("click", ()=> showDisplay(display1, {text:"ON", effects:["animate-glow"]}));
+
+  // ==== Chức năng 2 ====
+  const showOn2 = document.getElementById("showOn2");
+  const onBtn2 = document.getElementById("onBtn2");
+  const display2 = document.getElementById("display2");
+  showOn2.addEventListener("click", ()=> onBtn2.classList.toggle("hidden"));
+  onBtn2.addEventListener("click", ()=> showDisplay(display2, {text:"ON", effects:["animate-shake"]}));
+
+  // ==== Chức năng 3 ====
+  const pickFileBtn = document.getElementById("pickFileBtn");
+  const fileInput = document.getElementById("fileInput");
+  const display3 = document.getElementById("display3");
+  pickFileBtn.addEventListener("click", ()=> fileInput.click());
+  fileInput.addEventListener("change", (e)=>{
+    const f = e.target.files && e.target.files[0];
+    if(f){ showDisplay(display3, {text:`ON — ${f.name}`, effects:["animate-bounce"]}); }
+    else { display3.textContent = "—"; display3.classList.remove("on"); }
+  });
+
+  // ==== Chức năng 4 ====
+  const dropArea = document.getElementById("dropArea");
+  const dropInput = document.getElementById("dropInput");
+  const display4 = document.getElementById("display4");
+  dropArea.addEventListener("click", ()=> dropInput.click());
+  ["dragenter","dragover","dragleave","drop"].forEach(evt=>{
+    dropArea.addEventListener(evt, (e)=> { e.preventDefault(); e.stopPropagation(); });
+  });
+  dropArea.addEventListener("dragenter", ()=> dropArea.classList.add("drag"));
+  dropArea.addEventListener("dragover", ()=> dropArea.classList.add("drag"));
+  dropArea.addEventListener("dragleave", ()=> dropArea.classList.remove("drag"));
+  dropArea.addEventListener("drop", (e)=>{
+    dropArea.classList.remove("drag");
+    const dt = e.dataTransfer;
+    if(dt && dt.files && dt.files.length){
+      const f = dt.files[0];
+      showDisplay(display4, {text:`ON — ${f.name}`, effects:["animate-bounce"]});
+    }
+  });
+
+  // ==== Nút Chạy tất cả ====
+  const runAllBtn = document.getElementById("runAllBtn");
+  runAllBtn.addEventListener("click", ()=>{
+    const overlay = document.createElement("div");
+    overlay.id = "overlay";
+    overlay.textContent = "Chiến Đê";
+    document.body.appendChild(overlay);
+    setTimeout(()=> overlay.remove(), 2000);
+  });
+</script>
+</body>
+</html>
